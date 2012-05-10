@@ -68,6 +68,7 @@ TestResult& TestResult::inst() {
 void TestResult::addFailure(const Failure& f) {
     fprintf(stderr, "[FAIL] %s.%s\n", groupName.c_str(), f.toString().c_str());
     ++numFailure;
+    TestRegistry::inst().notifyFail();
 }
 
 void TestResult::print() {
