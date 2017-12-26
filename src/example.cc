@@ -14,6 +14,16 @@ TEST(G2, T1) {
     EQ_(1, 2) << " Add More Info there!";
 }
 
+TEST(G3, BINARY_OP) {
+    EQ_(1, 1);
+    NE_(1, 2);
+    LE_(1, 2);
+    LT_(1, 2);
+    GE_(2, 1);
+    GT_(2, 1);
+    FAIL_ << "fail here";
+}
+
 // an other example
 class MyTest : public cpput::Test {
 public:

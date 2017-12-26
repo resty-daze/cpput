@@ -9,14 +9,14 @@ namespace cpput {
     class Failure {
     public:
         Failure(const char* fileName, int lineNumber, const char* test) {
-            buf << test << " [" << fileName << ':' << lineNumber << "] " ; 
+            buf << test << " [" << fileName << ':' << lineNumber << "] " ;
         }
 
         Failure(const Failure& b) { buf << b.buf.str(); }
 
         template <typename T>
         Failure& operator <<(const T& arg) { buf << arg; return *this; }
-        
+
         std::string toString() const { return buf.str(); }
     private:
         std::ostringstream buf;
@@ -36,8 +36,8 @@ namespace cpput {
         Test* next_;
         friend class TestRegistry;
     };
-    
-    class TestRegistry {        
+
+    class TestRegistry {
     public:
         ~TestRegistry();
         static TestRegistry& inst();
@@ -53,7 +53,7 @@ namespace cpput {
         TestGroupNode* head_;
 
         bool fail;
-        
+
         TestRegistry() : head_(NULL) {}
         TestRegistry(const TestRegistry&);
         void operator=(const TestRegistry&);
@@ -93,9 +93,16 @@ namespace cpput {
 
 #define TEST(group, name) CPPUT_TEST_BASE(name, group, cpput::Test)
 #define TEST_F(group, name) CPPUT_TEST_BASE(name, group, group)
-#define CPPUT_SC cpput::TestResult::inst().addPassAssert(); else return cpput::TestResult::inst() = cpput::Failure(__FILE__, __LINE__, name())
+#define FAIL_ return cpput::TestResult::inst() = cpput::Failure(__FILE__, __LINE__, name())
+#define CPPUT_SC cpput::TestResult::inst().addPassAssert(); else FAIL_
 #define OK_(exp) if (exp)  CPPUT_SC << "Should be True: " << #exp
 #define NO_(exp) if (!(exp)) CPPUT_SC << "Should be False: " << #exp
-#define EQ_(exp1, exp2) if ((exp1)==(exp2)) CPPUT_SC << "Should be Equal: " << #exp1 <<'(' <<(exp1) <<"), " << #exp2 << '(' << (exp2) <<") "
+#define BINOP_(exp1, exp2, op, msg) if ((exp1)op(exp2)) CPPUT_SC << msg << #exp1 << '(' <<(exp1) <<"), " << #exp2 << '(' << (exp2) << ") "
+#define EQ_(exp1, exp2) BINOP_(exp1, exp2, ==, "Should be Equal: ")
+#define NE_(exp1, exp2) BINOP_(exp1, exp2, !=, "Should Not Equal: ")
+#define LE_(exp1, exp2) BINOP_(exp1, exp2, <=, "Should <=: ")
+#define GE_(exp1, exp2) BINOP_(exp1, exp2, >=, "Should >=: ")
+#define LT_(exp1, exp2) BINOP_(exp1, exp2, <, "Should <: ")
+#define GT_(exp1, exp2) BINOP_(exp1, exp2, >, "Should >: ")
 
 #endif
