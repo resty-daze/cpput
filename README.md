@@ -19,7 +19,7 @@ TEST(TestGroup, TestCase) {
     // do your case
     // ...
     // check result
-    EQ_(result,
+    EQ_(result, 0);
 }
 ```
 
