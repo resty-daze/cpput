@@ -81,6 +81,38 @@ private:
 };
 
 void run();
+
+// helpers
+template <typename T>
+std::string to_string(const T& v) {
+    std::ostringstream oss;
+    oss << v;
+    return oss.str();
+}
+
+#define DEFINE_CMP_HELPER(NAME, OP) \
+    class NAME { \
+    public: \
+        template <typename U, typename V> \
+        NAME(const U& u, const V& v) { \
+            first = to_string(u); \
+            second = to_string(v); \
+            result = u OP v; \
+        } \
+        operator bool() { return result; } \
+        std::string first;  \
+        std::string second; \
+        bool result;\
+    };
+
+DEFINE_CMP_HELPER(EqualHelper, ==)
+DEFINE_CMP_HELPER(NEHelper, !=)
+DEFINE_CMP_HELPER(LTHelper, <)
+DEFINE_CMP_HELPER(LEHelper, <=)
+DEFINE_CMP_HELPER(GTHelper, >)
+DEFINE_CMP_HELPER(GEHelper, >=)
+
+#undef DEFINE_CMP_HELPER
 }
 
 #define CPPUT_TEST_BASE(name, group, base)                              \
@@ -98,12 +130,13 @@ void run();
 #define CPPUT_SC cpput::TestResult::inst().addPassAssert(); else FAIL_
 #define OK_(exp) if (exp)  CPPUT_SC << "Should be True: " << #exp
 #define NO_(exp) if (!(exp)) CPPUT_SC << "Should be False: " << #exp
-#define BINOP_(exp1, exp2, op, msg) if ((exp1)op(exp2)) CPPUT_SC << msg << #exp1 << '(' <<(exp1) <<"), " << #exp2 << '(' << (exp2) << ") "
-#define EQ_(exp1, exp2) BINOP_(exp1, exp2, ==, "Should be Equal: ")
-#define NE_(exp1, exp2) BINOP_(exp1, exp2, !=, "Should Not Equal: ")
-#define LE_(exp1, exp2) BINOP_(exp1, exp2, <=, "Should <=: ")
-#define GE_(exp1, exp2) BINOP_(exp1, exp2, >=, "Should >=: ")
-#define LT_(exp1, exp2) BINOP_(exp1, exp2, <, "Should <: ")
-#define GT_(exp1, exp2) BINOP_(exp1, exp2, >, "Should >: ")
+#define BINOP_(exp1, exp2, helper, msg) if (cpput::helper h = cpput::helper((exp1), (exp2))) \
+        CPPUT_SC << msg << #exp1 << '(' << h.first <<"), " << #exp2 << '(' << h.second << ") "
+#define EQ_(exp1, exp2) BINOP_(exp1, exp2, EqualHelper, "Should be Equal: ")
+#define NE_(exp1, exp2) BINOP_(exp1, exp2, NEHelper, "Should Not Equal: ")
+#define LE_(exp1, exp2) BINOP_(exp1, exp2, LEHelper, "Should <=: ")
+#define GE_(exp1, exp2) BINOP_(exp1, exp2, GEHelper, "Should >=: ")
+#define LT_(exp1, exp2) BINOP_(exp1, exp2, LTHelper, "Should <: ")
+#define GT_(exp1, exp2) BINOP_(exp1, exp2, GTHelper, "Should >: ")
 
 #endif

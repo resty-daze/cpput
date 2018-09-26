@@ -1,4 +1,5 @@
 #include "cpput.hpp"
+#include <iostream>
 
 TEST(G1, T1) {
     EQ_(1, 1);
@@ -14,13 +15,18 @@ TEST(G2, T1) {
     EQ_(1, 2) << " Add More Info there!";
 }
 
+int f(int x) {
+    std::cout << "called f with " << x << std::endl;
+    return x;
+}
+
 TEST(G3, BINARY_OP) {
     EQ_(1, 1);
     NE_(1, 2);
     LE_(1, 2);
     LT_(1, 2);
     GE_(2, 1);
-    GT_(2, 1);
+    GT_(f(1), 1); // should only call f once
     FAIL_ << "fail here";
 }
 
