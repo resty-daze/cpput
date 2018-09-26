@@ -6,80 +6,81 @@
 #include <sstream>
 
 namespace cpput {
-    class Failure {
-    public:
-        Failure(const char* fileName, int lineNumber, const char* test) {
-            buf << test << " [" << fileName << ':' << lineNumber << "] " ;
-        }
 
-        Failure(const Failure& b) { buf << b.buf.str(); }
+class Failure {
+public:
+    Failure(const char* fileName, int lineNumber, const char* test) {
+        buf << test << " [" << fileName << ':' << lineNumber << "] " ;
+    }
 
-        template <typename T>
-        Failure& operator <<(const T& arg) { buf << arg; return *this; }
+    Failure(const Failure& b) { buf << b.buf.str(); }
 
-        std::string toString() const { return buf.str(); }
-    private:
-        std::ostringstream buf;
-    };
+    template <typename T>
+    Failure& operator <<(const T& arg) { buf << arg; return *this; }
 
-    class TestRegistry;
-    class Test {
-    public:
-        Test() : next_(NULL) {}
-        virtual void set() {}
-        virtual void run() {}
-        virtual void clear() {}
-        Test* next() const { return next_; }
-        const char* name() const { return name_.c_str(); }
-    private:
-        std::string name_;
-        Test* next_;
-        friend class TestRegistry;
-    };
+    std::string toString() const { return buf.str(); }
+private:
+    std::ostringstream buf;
+};
 
-    class TestRegistry {
-    public:
-        ~TestRegistry();
-        static TestRegistry& inst();
-        void addTest(const char* group, const char* name, Test* test);
-        void runAllTests();
-        void notifyFail() { fail = true; }
-    private:
-        struct TestGroupNode {
-            std::string groupName;
-            TestGroupNode * nextGroup;
-            Test* test;
-        };
-        TestGroupNode* head_;
+class TestRegistry;
+class Test {
+public:
+    Test() : next_(NULL) {}
+    virtual void set() {}
+    virtual void run() {}
+    virtual void clear() {}
+    Test* next() const { return next_; }
+    const char* name() const { return name_.c_str(); }
+private:
+    std::string name_;
+    Test* next_;
+    friend class TestRegistry;
+};
 
-        bool fail;
-
-        TestRegistry() : head_(NULL) {}
-        TestRegistry(const TestRegistry&);
-        void operator=(const TestRegistry&);
-    };
-
-    class TestResult {
-    public:
-        ~TestResult();
-        static TestResult& inst();
-        void addFailure(const Failure& failure);
-        void addPassTest() { ++numPassTest; }
-        void addPassAssert() { ++numPassAssert; }
-        void print();
-        void setGroup(const char* group) { groupName = group; }
-        void operator=(const Failure& f) { addFailure(f); }
-    private:
-        int numPassTest;
-        int numPassAssert;
-        int numFailure;
+class TestRegistry {
+public:
+    ~TestRegistry();
+    static TestRegistry& inst();
+    void addTest(const char* group, const char* name, Test* test);
+    void runAllTests();
+    void notifyFail() { fail = true; }
+private:
+    struct TestGroupNode {
         std::string groupName;
-        TestResult();
-        TestResult(const TestResult&);
-        void operator=(const TestResult&);
+        TestGroupNode * nextGroup;
+        Test* test;
     };
+    TestGroupNode* head_;
 
-    void run();
+    bool fail;
+
+    TestRegistry() : head_(NULL) {}
+    TestRegistry(const TestRegistry&);
+    void operator=(const TestRegistry&);
+};
+
+class TestResult {
+public:
+    ~TestResult();
+    static TestResult& inst();
+    void addFailure(const Failure& failure);
+    void addPassTest() { ++numPassTest; }
+    void addPassAssert() { ++numPassAssert; }
+    void print();
+    void setGroup(const char* group) { groupName = group; }
+    void operator=(const Failure& f) { addFailure(f); }
+private:
+    int numPassTest;
+    int numPassAssert;
+    int numFailure;
+    std::string groupName;
+    TestResult();
+    TestResult(const TestResult&);
+    void operator=(const TestResult&);
+};
+
+void run();
 }
 
 #define CPPUT_TEST_BASE(name, group, base)                              \
